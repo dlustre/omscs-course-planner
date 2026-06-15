@@ -21,30 +21,19 @@ function BasicTable({ tableId = "coursePicker", rows, addToCourseList, showCheck
   }, [rows.length])
 
   const handleHeaderClick = (event) => {
-    const clickedHeader = event.target.childNodes[0]?.textContent.trim();
-    // A click on the arrow span (↑/↓) or the already-sorted header toggles direction
-    // on the current column; otherwise it sorts by the newly clicked column.
-    const isToggle = clickedHeader === currentlySortedBy || ["↑", "↓"].includes(clickedHeader);
-    const column = isToggle ? currentlySortedBy : clickedHeader;
-    const nextDirection = isToggle
-      ? (sortDirection === "ascending" ? "descending" : "ascending")
-      : "ascending";
+    // currentTarget is always the <th>, even if the click landed on the sort
+    // arrow inside it; its first child is the header label text.
+    const column = event.currentTarget.childNodes[0]?.textContent.trim();
 
-    if (isToggle) {
-      setSortDirection(nextDirection)
-    } else {
-      setSortDirection("ascending")
-      setCurrentlySortedBy(clickedHeader)
-    }
+    // Re-clicking the sorted column flips direction; a new column starts ascending.
+    const nextDirection =
+      column === currentlySortedBy && sortDirection === "ascending" ? "descending" : "ascending";
+
+    setCurrentlySortedBy(column);
+    setSortDirection(nextDirection);
 
     // GA4 custom event: which column header users sort by (see public/index.html gtag setup)
-    if (column) {
-      window.gtag?.('event', 'column_sort', {
-        table_id: tableId,
-        column,
-        direction: nextDirection,
-      });
-    }
+    window.gtag?.('event', 'column_sort', { table_id: tableId, column, direction: nextDirection });
   }
 
   const sortCompareFunction = (a, b, propertyName, direction) => {
