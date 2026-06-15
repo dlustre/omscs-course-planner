@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Table from 'react-bootstrap/Table';
 import "./BasicTable.css"
 
-function BasicTable({ tableId, rows, addToCourseList, showCheckbox, showIndex = false, initiallySorted = true, selectedCourses }) {
+function BasicTable({ tableId = "coursePicker", rows, addToCourseList, showCheckbox, showIndex = false, initiallySorted = true, selectedCourses }) {
   const [sortedRows, setSortedRows] = useState(rows)
   const [currentlySortedBy, setCurrentlySortedBy] = useState("")
   const [sortDirection, setSortDirection] = useState("ascending")
@@ -21,13 +21,19 @@ function BasicTable({ tableId, rows, addToCourseList, showCheckbox, showIndex = 
   }, [rows.length])
 
   const handleHeaderClick = (event) => {
-    const clickedHeader = event.target.childNodes[0]?.textContent.trim();
-    if (clickedHeader === currentlySortedBy || ["↑", "↓"].includes(clickedHeader)) {
-      setSortDirection(sortDirection === "ascending" ? "descending" : "ascending") }
-    else {
-      setSortDirection("ascending")
-      setCurrentlySortedBy(clickedHeader)
-    }
+    // currentTarget is always the <th>, even if the click landed on the sort
+    // arrow inside it; its first child is the header label text.
+    const column = event.currentTarget.childNodes[0]?.textContent.trim();
+
+    // Re-clicking the sorted column flips direction; a new column starts ascending.
+    const nextDirection =
+      column === currentlySortedBy && sortDirection === "ascending" ? "descending" : "ascending";
+
+    setCurrentlySortedBy(column);
+    setSortDirection(nextDirection);
+
+    // GA4 custom event: which column header users sort by (see public/index.html gtag setup)
+    window.gtag?.('event', 'column_sort', { table_id: tableId, column, direction: nextDirection });
   }
 
   const sortCompareFunction = (a, b, propertyName, direction) => {
@@ -132,19 +138,28 @@ function BasicTable({ tableId, rows, addToCourseList, showCheckbox, showIndex = 
                     { showCheckbox && <td>
                       <input type="checkbox" className="course-checkbox"
                         aria-label={`Add ${name} to course list`}
-                        checked={selectedCourses && selectedCourses.find(row => row.id === id)}
-                        onChange={(event) => addToCourseList({ 
-                          id,
-                          slug,
-                          codes,
-                          isFoundational,
-                          name,
-                          officialURL,
-                          rating,
-                          difficulty,
-                          workload,
-                          reviewCount,
-                        })}/>
+                        checked={!!(selectedCourses && selectedCourses.find(row => row.id === id))}
+                        onChange={(event) => {
+                          // GA4 custom event: which courses users add/remove
+                          window.gtag?.('event', 'course_select', {
+                            table_id: tableId,
+                            course: name,
+                            code: codes?.join(', '),
+                            action: event.target.checked ? 'add' : 'remove',
+                          });
+                          addToCourseList({
+                            id,
+                            slug,
+                            codes,
+                            isFoundational,
+                            name,
+                            officialURL,
+                            rating,
+                            difficulty,
+                            workload,
+                            reviewCount,
+                          });
+                        }}/>
                     </td> }
                     <td>
                       <div>{ name }</div>
