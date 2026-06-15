@@ -175,7 +175,7 @@ function Planner() {
           <BasicTable tableId="chosenCourses" rows={chosenCourseList} initiallySorted={false} showIndex={ true } />
         </Tab>
       </Tabs>
-      { chosenCourseList.length !== 0 && <h4>Check <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRyHrRhH2V52bsYFEtm-8oJDaFOlyGYz6AKXm8WwsthN3fNP3KGkEx7O7D9ZHV3j2iKnzU2XHqoh4pQ/pubhtml" target="_blank" rel="noreferrer">omscs.rocks</a> for course availability.</h4>}
+      { chosenCourseList.length !== 0 && <h4>Check <a href="https://www.omshub.org/schedule" target="_blank" rel="noreferrer">OMSHub's schedule</a> for course availability. (<a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRyHrRhH2V52bsYFEtm-8oJDaFOlyGYz6AKXm8WwsthN3fNP3KGkEx7O7D9ZHV3j2iKnzU2XHqoh4pQ/pubhtml" target="_blank" rel="noreferrer">omscs.rocks</a> is no longer maintained.)</h4>}
 
       {chosenCourseList.length > 0 && <Stats selectedCourses={chosenCourseList} />}
       {chosenCourseList.length > 0 && <CourseScatterPlot allCourses={reviews.filter(c => freeElectives.includes(c.name))} selectedCourses={chosenCourseList} />}
